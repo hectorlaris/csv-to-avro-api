@@ -1,0 +1,93 @@
+name: CI/CD — Avro REST API Gateway
+
+# Pipeline del proyecto. La política del equipo exige que el despliegue a AWS
+# se haga por este pipeline, no con `sam deploy` manual.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  AWS_REGION: us-east-1
+  PYTHON_VERSION: "3.12"
+  FASTAVRO_VERSION: "1.12.2"
+
+permissions:
+  contents: read
+  id-token: write  # requerido para autenticación OIDC con AWS
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # CI: calidad de código y pruebas. Corre siempre (PR y push a main).
+  # ---------------------------------------------------------------------------
+  ci:
+    name: Lint y pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Instalar herramientas de calidad y dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install black==24.10.0 ruff==0.9.10 pytest==9.0.2
+          pip install "fastavro==${FASTAVRO_VERSION}"
+
+      - name: Verificar formato (black)
+        run: black --check .
+
+      - name: Linting (ruff)
+        run: ruff check .
+
+      - name: Ejecutar pruebas (pytest)
+        run: pytest -q
+
+  # ---------------------------------------------------------------------------
+  # Deploy: solo en push a main y tras CI en verde. Despliegue controlado.
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: Build y deploy a AWS
+    needs: ci
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production  # permite exigir aprobación manual en GitHub
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Configurar AWS SAM CLI
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - name: Autenticar en AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Instalar dependencias de la capa común
+        run: pip install "fastavro==${FASTAVRO_VERSION}" --target src/layers/common_layer/python
+
+      - name: SAM build
+        run: sam build
+
+      - name: SAM deploy
+        run: |
+          sam deploy \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --region "${AWS_REGION}" \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+            --resolve-s3
