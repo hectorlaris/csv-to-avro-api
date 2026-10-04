@@ -35,6 +35,12 @@ htmlcov/
 # AWS SAM
 .aws-sam/
 
+# Dependencias instaladas en la capa común (se reinstalan con pip en build/CI)
+# El código fuente (common/) SÍ se versiona.
+src/layers/common_layer/python/bin/
+src/layers/common_layer/python/fastavro/
+src/layers/common_layer/python/fastavro-*.dist-info/
+
 # Secrets y configuración local
 .env
 .env.*

@@ -6,7 +6,7 @@ import json
 from datetime import datetime, timezone
 from typing import Any
 
-from src.common import audit, avro_writer, s3_repository, validation
+from common import audit, avro_writer, s3_repository, validation
 
 # ---------------------------------------------------------------------------
 # Códigos de error de negocio

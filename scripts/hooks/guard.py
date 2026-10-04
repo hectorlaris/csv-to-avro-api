@@ -22,17 +22,38 @@ import sys
 
 DANGEROUS_COMMAND_PATTERNS: list[tuple[str, str]] = [
     (r"git\s+push\s+.*--force", "git push --force está bloqueado."),
-    (r"git\s+push\s+.*\bforce-with-lease", "git push --force-with-lease está bloqueado."),
-    (r"git\s+push\s+\S+\s+(main|master)\b", "No se permite push directo a main/master."),
+    (
+        r"git\s+push\s+.*\bforce-with-lease",
+        "git push --force-with-lease está bloqueado.",
+    ),
+    (
+        r"git\s+push\s+\S+\s+(main|master)\b",
+        "No se permite push directo a main/master.",
+    ),
     (r"git\s+reset\s+--hard", "git reset --hard está bloqueado."),
     (r"git\s+clean\s+-\w*f", "git clean -f está bloqueado."),
     (r"git\s+branch\s+-D", "Borrado forzado de ramas (git branch -D) bloqueado."),
     (r"\brm\s+-\w*r\w*f|\brm\s+-\w*f\w*r", "rm -rf está bloqueado."),
-    (r"Remove-Item\s+.*-Recurse.*-Force", "Remove-Item -Recurse -Force está bloqueado."),
-    (r"\bsam\s+deploy\b", "El deploy manual (sam deploy) debe hacerse por el pipeline."),
-    (r"\baws\s+cloudformation\s+(delete|deploy)", "Operaciones manuales de CloudFormation bloqueadas."),
-    (r"curl\s+.*\|\s*(sh|bash|pwsh|python)", "Patrón 'curl | shell' bloqueado (ejecución remota)."),
-    (r"Invoke-WebRequest\s+.*\|\s*(iex|Invoke-Expression)", "Patrón 'IWR | iex' bloqueado (ejecución remota)."),
+    (
+        r"Remove-Item\s+.*-Recurse.*-Force",
+        "Remove-Item -Recurse -Force está bloqueado.",
+    ),
+    (
+        r"\bsam\s+deploy\b",
+        "El deploy manual (sam deploy) debe hacerse por el pipeline.",
+    ),
+    (
+        r"\baws\s+cloudformation\s+(delete|deploy)",
+        "Operaciones manuales de CloudFormation bloqueadas.",
+    ),
+    (
+        r"curl\s+.*\|\s*(sh|bash|pwsh|python)",
+        "Patrón 'curl | shell' bloqueado (ejecución remota).",
+    ),
+    (
+        r"Invoke-WebRequest\s+.*\|\s*(iex|Invoke-Expression)",
+        "Patrón 'IWR | iex' bloqueado (ejecución remota).",
+    ),
 ]
 
 # --- Archivos y contenido sensibles -----------------------------------------

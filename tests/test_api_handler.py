@@ -11,8 +11,8 @@ os.environ.setdefault("AUDIT_TTL_DAYS", "90")
 os.environ.setdefault("WORKER_FUNCTION_NAME", "avro-worker-function-test")
 os.environ.setdefault("REPOSITORY_BUCKET", "avro-api-repository-test")
 
-from src.api_handler.app import lambda_handler  # noqa: E402
-from src.common import audit  # noqa: E402
+from app import lambda_handler  # noqa: E402
+from common import audit  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -50,8 +50,8 @@ def _body(response: dict) -> dict:
 
 @pytest.fixture()
 def mock_audit():
-    """Parchea src.common.audit usado por el handler."""
-    with patch("src.api_handler.app.audit") as m:
+    """Parchea common.audit usado por el handler."""
+    with patch("app.audit") as m:
         m.STATUS_PENDING = audit.STATUS_PENDING
         m.STATUS_PROCESSING = audit.STATUS_PROCESSING
         m.STATUS_COMPLETED = audit.STATUS_COMPLETED
@@ -64,7 +64,7 @@ def mock_audit():
 @pytest.fixture()
 def mock_lambda_client():
     """Parchea boto3.client('lambda') para evitar invocaciones reales."""
-    with patch("src.api_handler.app.boto3") as mock_boto3:
+    with patch("app.boto3") as mock_boto3:
         lambda_client = MagicMock()
         mock_boto3.client.return_value = lambda_client
         yield lambda_client

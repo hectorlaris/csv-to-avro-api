@@ -10,8 +10,8 @@ os.environ.setdefault("AUDIT_TABLE", "avro-api-audit-test")
 os.environ.setdefault("REPOSITORY_BUCKET", "avro-api-repository-test")
 os.environ.setdefault("AUDIT_TTL_DAYS", "90")
 
-from src.common import audit  # noqa: E402
-from src.common.conversion import (  # noqa: E402
+from common import audit  # noqa: E402
+from common.conversion import (  # noqa: E402
     ERR_CSV_NOT_FOUND,
     ERR_INVALID_SCHEMA,
     ERR_SCHEMA_NOT_FOUND,
@@ -47,8 +47,8 @@ CSV_TODOS_VALIDOS = "nombre,edad\nAna,20\nLuis,22\n"
 def mocks():
     """Parchea audit, s3_repository y devuelve los mocks."""
     with (
-        patch("src.common.conversion.audit") as mock_audit,
-        patch("src.common.conversion.s3_repository") as mock_s3,
+        patch("common.conversion.audit") as mock_audit,
+        patch("common.conversion.s3_repository") as mock_s3,
     ):
         # Estado inicial: asiento en PENDING (no finalizado)
         mock_audit.STATUS_COMPLETED = audit.STATUS_COMPLETED

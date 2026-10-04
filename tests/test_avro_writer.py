@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.common.avro_writer import deserialize_from_avro, serialize_to_avro
+from common.avro_writer import deserialize_from_avro, serialize_to_avro
 
 # ---------------------------------------------------------------------------
 # Esquemas de prueba

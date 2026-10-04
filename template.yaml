@@ -39,6 +39,17 @@ Globals:
 # ---------------------------------------------------------------------------
 Resources:
 
+  # ── Lambda Layer: lógica de negocio compartida (common/) ──────────────────
+  CommonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "avro-api-common-${Environment}"
+      Description: "Lógica de negocio compartida (validación, conversión, Avro, auditoría)"
+      ContentUri: src/layers/common_layer/
+      CompatibleRuntimes:
+        - python3.12
+      RetentionPolicy: Delete
+
   # ── S3: Repositorio oficial ───────────────────────────────────────────────
   RepositoryBucket:
     Type: AWS::S3::Bucket
@@ -175,6 +186,8 @@ Resources:
       Timeout: 29
       MemorySize: 256
       Description: "Atiende POST /conversions y GET /conversions/{auditId}"
+      Layers:
+        - !Ref CommonLayer
       Environment:
         Variables:
           WORKER_FUNCTION_NAME: !Sub "avro-worker-function-${Environment}"
@@ -206,6 +219,8 @@ Resources:
       Timeout: 900
       MemorySize: 512
       Description: "Invocado de forma asíncrona; ejecuta la conversión CSV→Avro"
+      Layers:
+        - !Ref CommonLayer
       DeadLetterQueue:
         Type: SQS
         TargetArn: !GetAtt ConversionWorkerDLQ.Arn
