@@ -8,7 +8,7 @@ from botocore.exceptions import ClientError
 
 os.environ.setdefault("REPOSITORY_BUCKET", "avro-api-repository-test")
 
-from src.common.s3_repository import (  # noqa: E402
+from common.s3_repository import (  # noqa: E402
     get_object_size,
     object_exists,
     read_object_bytes,
@@ -36,7 +36,7 @@ def _client_error(code: str) -> ClientError:
 def mock_s3():
     """Parchea _s3_client() y retorna el mock del cliente."""
     client = MagicMock()
-    with patch("src.common.s3_repository._s3_client", return_value=client):
+    with patch("common.s3_repository._s3_client", return_value=client):
         yield client
 
 

@@ -1,6 +1,6 @@
 """Handler invocado por evento para la conversión asíncrona CSV → Avro."""
 
-from src.common import conversion
+from common import conversion
 
 
 def lambda_handler(event: dict, context: object) -> None:

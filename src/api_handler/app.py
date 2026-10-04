@@ -5,7 +5,7 @@ import os
 
 import boto3
 
-from src.common import audit, responses
+from common import audit, responses
 
 # ---------------------------------------------------------------------------
 # Constante

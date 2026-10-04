@@ -9,7 +9,7 @@ import pytest
 os.environ.setdefault("AUDIT_TABLE", "avro-api-audit-test")
 os.environ.setdefault("AUDIT_TTL_DAYS", "90")
 
-from src.common.audit import (  # noqa: E402
+from common.audit import (  # noqa: E402
     STATUS_COMPLETED,
     STATUS_ERROR,
     STATUS_NO_VALID_RECORDS,
@@ -30,7 +30,7 @@ from src.common.audit import (  # noqa: E402
 def mock_table():
     """Retorna un mock de la tabla DynamoDB y parchea _table()."""
     table = MagicMock()
-    with patch("src.common.audit._table", return_value=table):
+    with patch("common.audit._table", return_value=table):
         yield table
 
 

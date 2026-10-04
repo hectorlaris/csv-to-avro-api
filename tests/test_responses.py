@@ -3,7 +3,7 @@
 import json
 
 
-from src.common.responses import (
+from common.responses import (
     accepted,
     bad_request,
     not_found,

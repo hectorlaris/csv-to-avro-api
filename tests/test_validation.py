@@ -1,6 +1,6 @@
 """Pruebas unitarias para src/common/validation.py."""
 
-from src.common.validation import validate_rows
+from common.validation import validate_rows
 
 # ---------------------------------------------------------------------------
 # Esquemas de prueba
