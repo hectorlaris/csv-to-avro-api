@@ -38,6 +38,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install black==24.10.0 ruff==0.9.10 pytest==9.0.2
           pip install "fastavro==${FASTAVRO_VERSION}"
+          # boto3 viene en el runtime de Lambda, pero los tests lo requieren en CI
+          pip install boto3==1.43.42
 
       - name: Verificar formato (black)
         run: black --check .
