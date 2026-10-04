@@ -1,0 +1,25 @@
+{
+    "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+    "name": "csi-develop-standards",
+    "version": "1.0.0",
+    "description": "Estándares de desarrollo en CSI: specs con EARS, diseño fundamentado con AWS Docs y Pricing, diagramas de arquitectura en draw.io, APIs Lambda",
+    "author": {
+        "name": "Hectorlaris"
+    },
+    "keywords": [
+        "spec",
+        "requirements",
+        "requisitos",
+        "design",
+        "diseño",
+        "arquitectura",
+        "diagrama",
+        "diagram",
+        "drawio",
+        "draw.io",
+        "endpoint",
+        "api",
+        "avro"
+    ],
+    "license": "UNLICENSED"
+}

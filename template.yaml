@@ -1,0 +1,267 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Avro REST API Gateway — Convierte archivos CSV alojados en S3 a formato
+  Apache Avro aplicando un esquema JSON personalizado. Procesamiento asíncrono
+  con auditoría en DynamoDB.
+
+# ---------------------------------------------------------------------------
+# Parámetros
+# ---------------------------------------------------------------------------
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+    Description: Entorno de despliegue
+
+  AuditTtlDays:
+    Type: Number
+    Default: 90
+    Description: Días de retención de los asientos de auditoría en DynamoDB
+
+# ---------------------------------------------------------------------------
+# Globals
+# ---------------------------------------------------------------------------
+Globals:
+  Function:
+    Runtime: python3.12
+    Architectures: [x86_64]
+    Environment:
+      Variables:
+        REPOSITORY_BUCKET: !Ref RepositoryBucket
+        AUDIT_TABLE: !Ref AuditTable
+        AUDIT_TTL_DAYS: !Ref AuditTtlDays
+        ENVIRONMENT: !Ref Environment
+
+# ---------------------------------------------------------------------------
+# Recursos
+# ---------------------------------------------------------------------------
+Resources:
+
+  # ── S3: Repositorio oficial ───────────────────────────────────────────────
+  RepositoryBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "avro-api-repository-${Environment}-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Suspended
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      Tags:
+        - Key: Project
+          Value: avro-rest-api-gateway
+        - Key: Environment
+          Value: !Ref Environment
+
+  # ── DynamoDB: Tabla de auditoría ──────────────────────────────────────────
+  AuditTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "avro-api-audit-${Environment}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: auditId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: auditId
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      Tags:
+        - Key: Project
+          Value: avro-rest-api-gateway
+        - Key: Environment
+          Value: !Ref Environment
+
+  # ── SQS: Dead-letter queue del worker ─────────────────────────────────────
+  ConversionWorkerDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "avro-api-worker-dlq-${Environment}"
+      MessageRetentionPeriod: 1209600  # 14 días
+      Tags:
+        - Key: Project
+          Value: avro-rest-api-gateway
+        - Key: Environment
+          Value: !Ref Environment
+
+  # ── IAM: Rol de ApiFunction ───────────────────────────────────────────────
+  ApiFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "avro-api-function-role-${Environment}"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: ApiFunctionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # DynamoDB: leer y escribir asientos de auditoría
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:UpdateItem
+                Resource: !GetAtt AuditTable.Arn
+              # Lambda: invocar al worker de forma asíncrona
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:avro-worker-function-${Environment}"
+
+  # ── IAM: Rol de ConversionWorkerFunction ──────────────────────────────────
+  ConversionWorkerFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "avro-worker-function-role-${Environment}"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: ConversionWorkerPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # S3: leer CSV y esquemas; escribir Avro y logs
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:HeadObject
+                Resource: !Sub "${RepositoryBucket.Arn}/*"
+              # DynamoDB: leer y actualizar asientos de auditoría
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:UpdateItem
+                Resource: !GetAtt AuditTable.Arn
+              # SQS: enviar mensajes a la DLQ
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                Resource: !GetAtt ConversionWorkerDLQ.Arn
+
+  # ── Lambda: ApiFunction ───────────────────────────────────────────────────
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "avro-api-function-${Environment}"
+      CodeUri: src/api_handler/
+      Handler: app.lambda_handler
+      Role: !GetAtt ApiFunctionRole.Arn
+      Timeout: 29
+      MemorySize: 256
+      Description: "Atiende POST /conversions y GET /conversions/{auditId}"
+      Environment:
+        Variables:
+          WORKER_FUNCTION_NAME: !Sub "avro-worker-function-${Environment}"
+      Events:
+        PostConversions:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ConversionsApi
+            Path: /conversions
+            Method: POST
+        GetConversion:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ConversionsApi
+            Path: /conversions/{auditId}
+            Method: GET
+      Tags:
+        Project: avro-rest-api-gateway
+        Environment: !Ref Environment
+
+  # ── Lambda: ConversionWorkerFunction ─────────────────────────────────────
+  ConversionWorkerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "avro-worker-function-${Environment}"
+      CodeUri: src/conversion_worker/
+      Handler: app.lambda_handler
+      Role: !GetAtt ConversionWorkerFunctionRole.Arn
+      Timeout: 900
+      MemorySize: 512
+      Description: "Invocado de forma asíncrona; ejecuta la conversión CSV→Avro"
+      DeadLetterQueue:
+        Type: SQS
+        TargetArn: !GetAtt ConversionWorkerDLQ.Arn
+      Tags:
+        Project: avro-rest-api-gateway
+        Environment: !Ref Environment
+
+  # ── API Gateway: REST API ─────────────────────────────────────────────────
+  ConversionsApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub "avro-conversions-api-${Environment}"
+      StageName: !Ref Environment
+      Description: "REST API para conversión asíncrona de CSV a Avro"
+      EndpointConfiguration:
+        Type: REGIONAL
+      MethodSettings:
+        - ResourcePath: "/*"
+          HttpMethod: "*"
+          LoggingLevel: ERROR
+          DataTraceEnabled: false
+          MetricsEnabled: true
+      Tags:
+        Project: avro-rest-api-gateway
+        Environment: !Ref Environment
+
+# ---------------------------------------------------------------------------
+# Outputs
+# ---------------------------------------------------------------------------
+Outputs:
+  ApiEndpoint:
+    Description: "URL base de la REST API"
+    Value: !Sub "https://${ConversionsApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}"
+    Export:
+      Name: !Sub "avro-api-endpoint-${Environment}"
+
+  RepositoryBucketName:
+    Description: "Nombre del bucket S3 repositorio oficial"
+    Value: !Ref RepositoryBucket
+    Export:
+      Name: !Sub "avro-repository-bucket-${Environment}"
+
+  AuditTableName:
+    Description: "Nombre de la tabla DynamoDB de auditoría"
+    Value: !Ref AuditTable
+    Export:
+      Name: !Sub "avro-audit-table-${Environment}"
+
+  ConversionWorkerDLQUrl:
+    Description: "URL de la Dead-letter queue del worker"
+    Value: !Ref ConversionWorkerDLQ
+    Export:
+      Name: !Sub "avro-worker-dlq-${Environment}"
+
+  ConversionWorkerFunctionArn:
+    Description: "ARN de la función Lambda worker"
+    Value: !GetAtt ConversionWorkerFunction.Arn
+    Export:
+      Name: !Sub "avro-worker-function-arn-${Environment}"

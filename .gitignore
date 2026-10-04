@@ -3,9 +3,9 @@
 .kiro-audit/
 
 # Documentación y recursos internos
-Documents/
-powers/
-scripts/
+# Documents/
+# powers/
+# scripts/
 
 # Python
 __pycache__/

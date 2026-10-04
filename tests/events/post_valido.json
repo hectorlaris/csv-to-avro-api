@@ -1,0 +1,5 @@
+{
+  "httpMethod": "POST",
+  "path": "/conversions",
+  "body": "{\"csvKey\": \"datos/alumnos.csv\"}"
+}

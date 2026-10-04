@@ -1,0 +1,5 @@
+# Dependencias de ConversionWorkerFunction
+# boto3 no se declara: está incluido en el runtime de Lambda (Python 3.12)
+# Versiones fijadas (pinned) según política del proyecto
+
+fastavro==1.12.2
