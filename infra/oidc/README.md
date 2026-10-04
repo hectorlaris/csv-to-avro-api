@@ -62,12 +62,25 @@ gh secret set AWS_DEPLOY_ROLE_ARN \
   --repo hectorlaris/csv-to-avro-api
 ```
 
+## Actualizar la trust policy de un rol ya existente
+
+Si el rol ya existe y solo cambió la trust policy (`trust-policy.json`):
+
+```bash
+aws iam update-assume-role-policy \
+  --role-name github-actions-avro-deploy \
+  --policy-document file://infra/oidc/trust-policy.json \
+  --profile AdministratorAccess-962682390364
+```
+
 ## Notas de seguridad
 
-- La trust policy restringe el `sub` a `repo:hectorlaris/csv-to-avro-api:ref:refs/heads/main`.
-  Ninguna otra rama ni repositorio puede asumir el rol.
+- La trust policy restringe el `sub` a dos valores del repo `hectorlaris/csv-to-avro-api`:
+  `ref:refs/heads/main` y `environment:production`. Ninguna otra rama, environment ni
+  repositorio puede asumir el rol.
+- **Importante**: cuando un job declara `environment: production`, GitHub emite el token OIDC
+  con `sub = repo:ORG/REPO:environment:production` (no `ref:refs/heads/main`). Por eso la
+  trust policy incluye ambos patrones.
 - Los permisos están acotados por ARN a los recursos de **este** proyecto.
   La excepción es Lambda (`Resource: *`), requerida por cómo CloudFormation nombra
   algunos recursos durante el despliegue.
-- Si el deploy debe ejecutarse bajo el environment `production` con aprobación manual,
-  ajustar el `sub` de la trust policy a `repo:hectorlaris/csv-to-avro-api:environment:production`.
