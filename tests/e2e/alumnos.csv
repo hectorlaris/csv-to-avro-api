@@ -1,0 +1,8 @@
+nombre,edad,promedio,activo
+Ana,20,9.5,true
+Luis,22,8.0,false
+Maria,19,7.5,true
+Pedro,abc,6.0,true
+,25,8.5,false
+Jose,200,7.0,true
+Carla,21,9.0,true

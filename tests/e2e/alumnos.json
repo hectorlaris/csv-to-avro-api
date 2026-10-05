@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "Alumno",
+  "namespace": "escolaris",
+  "fields": [
+    { "name": "nombre", "type": "string" },
+    { "name": "edad", "type": "int" },
+    { "name": "promedio", "type": "double" },
+    { "name": "activo", "type": "boolean" }
+  ],
+  "qualityRules": [
+    { "field": "nombre", "type": "minLength", "value": 2 },
+    { "field": "edad", "type": "min", "value": 0 },
+    { "field": "edad", "type": "max", "value": 120 }
+  ]
+}
