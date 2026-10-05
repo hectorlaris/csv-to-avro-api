@@ -1,12 +1,23 @@
 """Módulo de construcción de respuestas HTTP JSON UTF-8 para la API."""
 
 import json
+from decimal import Decimal
 from typing import Any
 
 # ---------------------------------------------------------------------------
 # Constante de cabecera
 # ---------------------------------------------------------------------------
 _CONTENT_TYPE = "application/json; charset=utf-8"
+
+
+class _DecimalEncoder(json.JSONEncoder):
+    """Encoder JSON que serializa los Decimal de DynamoDB como int o float."""
+
+    def default(self, o: Any) -> Any:
+        """Convierte Decimal a int (si es entero) o float; delega el resto."""
+        if isinstance(o, Decimal):
+            return int(o) if o % 1 == 0 else float(o)
+        return super().default(o)
 
 
 def _build(status_code: int, body: dict[str, Any]) -> dict:
@@ -31,7 +42,7 @@ def _build(status_code: int, body: dict[str, Any]) -> dict:
     return {
         "statusCode": status_code,
         "headers": {"Content-Type": _CONTENT_TYPE},
-        "body": json.dumps(cleaned, ensure_ascii=False),
+        "body": json.dumps(cleaned, ensure_ascii=False, cls=_DecimalEncoder),
     }
 
 

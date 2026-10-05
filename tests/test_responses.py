@@ -1,6 +1,7 @@
 """Pruebas unitarias para src/common/responses.py."""
 
 import json
+from decimal import Decimal
 
 
 from common.responses import (
@@ -248,3 +249,55 @@ class TestOmisionCamposNulos:
         """avroKey debe aparecer como null en NO_VALID_RECORDS, no omitirse."""
         raw_body = ok_no_valid_records("id-1", "logs/x.csv", 10, 10)["body"]
         assert '"avroKey": null' in raw_body
+
+
+# ---------------------------------------------------------------------------
+# Serialización de Decimal (DynamoDB devuelve números como Decimal)
+# ---------------------------------------------------------------------------
+
+
+class TestDecimalSerialization:
+    """Verifica que los Decimal de DynamoDB se serializan correctamente."""
+
+    def test_completed_con_decimales(self) -> None:
+        """ok_completed debe serializar contadores Decimal sin lanzar TypeError."""
+        response = ok_completed(
+            audit_id="id-1",
+            avro_key="output/alumnos_20261005.avro",
+            log_key="logs/alumnos_20261005.csv",
+            total_rows=Decimal("7"),
+            converted_rows=Decimal("4"),
+            error_rows=Decimal("3"),
+            file_size_bytes=Decimal("20480"),
+        )
+        body = _body(response)
+        assert body["totalRows"] == 7
+        assert body["convertedRows"] == 4
+        assert body["errorRows"] == 3
+        assert body["fileSizeBytes"] == 20480
+
+    def test_decimal_entero_se_vuelve_int(self) -> None:
+        """Un Decimal sin parte fraccionaria se serializa como int."""
+        response = ok_completed(
+            audit_id="id-1",
+            avro_key="k",
+            log_key="l",
+            total_rows=Decimal("100"),
+            converted_rows=Decimal("100"),
+            error_rows=Decimal("0"),
+            file_size_bytes=Decimal("1024"),
+        )
+        assert '"totalRows": 100' in response["body"]
+        assert '"totalRows": 100.0' not in response["body"]
+
+    def test_no_valid_records_con_decimales(self) -> None:
+        """ok_no_valid_records debe manejar contadores Decimal."""
+        response = ok_no_valid_records(
+            audit_id="id-1",
+            log_key="logs/x.csv",
+            total_rows=Decimal("5"),
+            error_rows=Decimal("5"),
+        )
+        body = _body(response)
+        assert body["totalRows"] == 5
+        assert body["errorRows"] == 5
