@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Formato y lint al guardar .py",
+      "trigger": "PostFileSave",
+      "description": "Al guardar un archivo Python, aplica black (formato) y ruff --fix sobre ese archivo.",
+      "matcher": "\\.py$",
+      "action": {
+        "type": "command",
+        "command": "python scripts/hooks/format_on_save.py",
+        "timeout": 60
+      }
+    }
+  ]
+}

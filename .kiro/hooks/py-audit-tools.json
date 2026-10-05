@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Auditoría de herramientas (Python)",
+      "trigger": "PostToolUse",
+      "description": "Registra cada invocación de herramienta en .kiro-audit/tool-calls.jsonl.",
+      "matcher": ".*",
+      "action": {
+        "type": "command",
+        "command": "python scripts/hooks/audit.py",
+        "timeout": 5
+      }
+    }
+  ]
+}

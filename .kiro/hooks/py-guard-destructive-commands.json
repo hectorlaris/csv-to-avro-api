@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Bloquear comandos destructivos (Python)",
+      "trigger": "PreToolUse",
+      "description": "Force push, push a main, reset --hard, rm -rf, deploys manuales y curl|sh se bloquean (exit 2).",
+      "matcher": "execute_pwsh|control_pwsh_process",
+      "action": {
+        "type": "command",
+        "command": "python scripts/hooks/guard.py",
+        "timeout": 10
+      }
+    }
+  ]
+}

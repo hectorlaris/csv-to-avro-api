@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Quality gate Python al terminar",
+      "trigger": "Stop",
+      "description": "Si el agente cambió src/ o tests/, corre ruff + black --check + pytest; si fallan, no lo deja terminar.",
+      "action": {
+        "type": "command",
+        "command": "python scripts/hooks/quality_gate.py",
+        "timeout": 180
+      }
+    }
+  ]
+}
