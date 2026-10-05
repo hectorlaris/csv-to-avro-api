@@ -91,6 +91,7 @@ jobs:
       - name: SAM deploy
         run: |
           sam deploy \
+            --stack-name avro-rest-api-gateway \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
             --region "${AWS_REGION}" \

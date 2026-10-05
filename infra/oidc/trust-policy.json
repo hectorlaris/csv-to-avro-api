@@ -14,7 +14,9 @@
         "StringLike": {
           "token.actions.githubusercontent.com:sub": [
             "repo:hectorlaris/csv-to-avro-api:ref:refs/heads/main",
-            "repo:hectorlaris/csv-to-avro-api:environment:production"
+            "repo:hectorlaris/csv-to-avro-api:environment:production",
+            "repo:hectorlaris*/csv-to-avro-api*:ref:refs/heads/main",
+            "repo:hectorlaris*/csv-to-avro-api*:environment:production"
           ]
         }
       }
