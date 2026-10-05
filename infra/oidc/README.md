@@ -81,6 +81,15 @@ aws iam update-assume-role-policy \
 - **Importante**: cuando un job declara `environment: production`, GitHub emite el token OIDC
   con `sub = repo:ORG/REPO:environment:production` (no `ref:refs/heads/main`). Por eso la
   trust policy incluye ambos patrones.
+- **Formato de `sub` con IDs inmutables**: con ciertas configuraciones de seguridad del repo,
+  GitHub incluye los IDs numéricos de owner y repo en el `sub`, p. ej.
+  `repo:hectorlaris@77126484/csv-to-avro-api@1404320786:environment:production`.
+  Por eso la trust policy usa patrones con comodín (`hectorlaris*/csv-to-avro-api*`) que
+  aceptan tanto el formato con nombre como el de IDs. Verificado vía CloudTrail
+  (`AssumeRoleWithWebIdentity`, campo `userName`).
+- **El secret del rol debe estar en el environment `production`**, no solo a nivel de repo:
+  `gh secret set AWS_DEPLOY_ROLE_ARN --env production ...`. Un job con `environment` no ve
+  los secrets de repo si el environment define su propio conjunto.
 - Los permisos están acotados por ARN a los recursos de **este** proyecto.
   La excepción es Lambda (`Resource: *`), requerida por cómo CloudFormation nombra
   algunos recursos durante el despliegue.
