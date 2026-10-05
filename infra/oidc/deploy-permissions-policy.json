@@ -16,7 +16,18 @@
         "cloudformation:DeleteChangeSet",
         "cloudformation:ListStackResources"
       ],
-      "Resource": "arn:aws:cloudformation:us-east-1:962682390364:stack/avro-rest-api-gateway/*"
+      "Resource": [
+        "arn:aws:cloudformation:us-east-1:962682390364:stack/avro-rest-api-gateway/*",
+        "arn:aws:cloudformation:us-east-1:962682390364:stack/aws-sam-cli-managed-default/*"
+      ]
+    },
+    {
+      "Sid": "CloudFormationTransform",
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:CreateChangeSet"
+      ],
+      "Resource": "arn:aws:cloudformation:us-east-1:aws:transform/Serverless-2016-10-31"
     },
     {
       "Sid": "SamManagedBucket",
@@ -26,11 +37,20 @@
         "s3:GetObject",
         "s3:PutObject",
         "s3:GetBucketLocation",
-        "s3:ListBucket"
+        "s3:ListBucket",
+        "s3:GetBucketPolicy",
+        "s3:PutBucketPolicy",
+        "s3:PutBucketTagging",
+        "s3:PutBucketVersioning",
+        "s3:PutEncryptionConfiguration",
+        "s3:GetEncryptionConfiguration",
+        "s3:PutBucketPublicAccessBlock"
       ],
       "Resource": [
         "arn:aws:s3:::aws-sam-cli-managed-*",
-        "arn:aws:s3:::aws-sam-cli-managed-*/*"
+        "arn:aws:s3:::aws-sam-cli-managed-*/*",
+        "arn:aws:s3:::avro-api-repository-*",
+        "arn:aws:s3:::avro-api-repository-*/*"
       ]
     },
     {
