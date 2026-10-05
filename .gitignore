@@ -4,8 +4,8 @@
 
 # Documentación y recursos internos
 # Documents/
-# powers/
-# scripts/
+powers/
+scripts/
 
 # Python
 __pycache__/
