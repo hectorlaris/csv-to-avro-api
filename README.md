@@ -29,7 +29,8 @@ Cliente ──POST /conversions──► API Gateway ──► ApiFunction ─�
                                                               logs)          + TTL)
 ```
 
-Diagrama detallado (componentes + flujo + estados): [`Documents/avro-rest-api-gateway-arquitectura.md`](Documents/avro-rest-api-gateway-arquitectura.md).
+El flujo numerado (1 = `POST`, 8 = `GET`) y los estados del procesamiento se detallan en la
+sección [API](#api) y en el diseño ([`.kiro/specs/design.md`](.kiro/specs/design.md)).
 
 | Componente | Servicio AWS | Rol |
 |---|---|---|
@@ -169,4 +170,6 @@ Resultado esperado: `COMPLETED` con `totalRows=7`, `convertedRows=4`, `errorRows
 ## Documentación del proyecto
 
 - Especificación: [`.kiro/specs/requirements.md`](.kiro/specs/requirements.md), [`design.md`](.kiro/specs/design.md), [`tasks.md`](.kiro/specs/tasks.md)
-- Arquitectura: [`Documents/avro-rest-api-gateway-arquitectura.md`](Documents/avro-rest-api-gateway-arquitectura.md)
+- Arquitectura: diagrama en la sección [Arquitectura](#arquitectura) y detalle en [`.kiro/specs/design.md`](.kiro/specs/design.md)
+- Guía de despliegue OIDC: [`infra/oidc/README.md`](infra/oidc/README.md)
+- Prueba end-to-end: [`tests/e2e/README.md`](tests/e2e/README.md)

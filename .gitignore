@@ -3,7 +3,7 @@
 .kiro-audit/
 
 # Documentación y recursos internos
-# Documents/
+Documents/
 # powers/
 # scripts/
 
@@ -24,8 +24,9 @@ build/
 venv/
 env/
 
-# pytest
+# pytest / hypothesis
 .pytest_cache/
+.hypothesis/
 .coverage
 htmlcov/
 
