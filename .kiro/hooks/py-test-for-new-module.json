@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Test para cada módulo nuevo de negocio",
+      "trigger": "PostFileCreate",
+      "description": "Cuando el agente crea un módulo en src/common/, verifica que exista su prueba en tests/.",
+      "matcher": "src/common/.*\\.py$",
+      "action": {
+        "type": "agent",
+        "prompt": "Acabas de crear un módulo de negocio en src/common/. Verifica que exista su prueba en tests/ con el nombre test_<modulo>.py (por ejemplo, src/common/validation.py -> tests/test_validation.py) y que cubra la lógica agregada. Prioriza validation.py y conversion.py, que concentran la lógica crítica. Sigue las convenciones de la skill csi-standards (4 espacios, docstrings, type hints, f-strings)."
+      }
+    }
+  ]
+}

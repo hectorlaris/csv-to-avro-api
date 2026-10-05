@@ -1,6 +1,7 @@
 # Kiro IDE
-.kiro/
+# .kiro/ SÍ se versiona (specs, steering, hooks, agents) — requisito del challenge.
 .kiro-audit/
+.kiro/settings/
 
 # Documentación y recursos internos
 Documents/
