@@ -24,8 +24,9 @@ build/
 venv/
 env/
 
-# pytest
+# pytest / hypothesis
 .pytest_cache/
+.hypothesis/
 .coverage
 htmlcov/
 

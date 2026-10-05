@@ -36,7 +36,7 @@ jobs:
       - name: Instalar herramientas de calidad y dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install black==24.10.0 ruff==0.9.10 pytest==9.0.2
+          pip install black==24.10.0 ruff==0.9.10 pytest==9.0.2 hypothesis==6.108.5
           pip install "fastavro==${FASTAVRO_VERSION}"
           # boto3 viene en el runtime de Lambda, pero los tests lo requieren en CI
           pip install boto3==1.43.42

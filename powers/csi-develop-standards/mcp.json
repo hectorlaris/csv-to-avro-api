@@ -33,7 +33,7 @@
                 "drawio-architect-mcp"
             ],
             "env": {
-                "DRAWIO_FILES_ROOT": "D:/kiro-university/Avro-Rest-API-Gateway/Documents"
+                "DRAWIO_FILES_ROOT": "D:/kiro-university/csv-to-avro-api/Documents"
             }
         }
     }
